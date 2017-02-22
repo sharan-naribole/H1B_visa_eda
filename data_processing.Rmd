@@ -1,0 +1,176 @@
+---
+title: "H1-B Visa Petitions for Data Science Positions in 2015"
+author: "Sharan Naribole"
+output:
+  html_document:
+    theme: united
+    toc: yes
+    toc_depth: 2
+    fig_width: 10
+    fig_height: 8
+    fig_caption: true
+  html_notebook:
+    theme: united
+    toc: yes
+    toc_depth: 2
+  pdf_document: default
+---
+
+Contributed by Sharan Naribole. He is currently undertaking the part-time online bootcamp organized by NYC Data Science Academy (Dec 2016- April 2017). This blog is based on his bootcamp project - R Exploratory Data Analysis
+
+In this notebook, I will focus on the cleaning and transformation of H-1B disclosure data for the period 2011-2016. Let's begin by loading the relevant libraries.
+
+```{r,results="hide",warning=FALSE, error=FALSE, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(readxl)
+library(ggthemes)
+library(RColorBrewer)
+library(hashmap)
+```
+
+<h2> Reading Data </h2>
+
+The first step is to read the H-1B records. From the description files provided on the source website, the column names for almost all the columns changed 2015 onwards. However, the values of categorical features remain the same. Using this info, before combining the records from different years, it is important to rename the columns for records before 2015. 
+
+```{r,warning=FALSE, error=FALSE, message=FALSE}
+#Empty data frame
+h1b_df = data.frame()
+
+for(year in seq(2016,2011)) {
+  
+  print(paste0("Reading ", year, " records .."))
+  raw_data_path = paste0("./data/",year,"_raw_data.xlsx")
+  new_df = read_excel(raw_data_path)
+
+  print(paste0("Raw data size: ", as.character(dim(new_df))))  
+
+  # Changing column names of data before 2015 
+  print("Column matching ..")
+  if(year != 2015 & year != 2016){
+    
+    new_df = new_df %>% 
+             mutate(CASE_NUMBER = LCA_CASE_NUMBER, 
+                    CASE_STATUS = STATUS,
+                    EMPLOYER_NAME = LCA_CASE_EMPLOYER_NAME,
+                    SOC_NAME = LCA_CASE_SOC_NAME,
+                    JOB_TITLE = LCA_CASE_JOB_TITLE,
+                    FULL_TIME_POSITION = FULL_TIME_POS,
+                    PREVAILING_WAGE = PW_1,
+                    PW_UNIT_OF_PAY = PW_UNIT_1,
+                    WORKSITE_CITY = LCA_CASE_WORKLOC1_CITY,
+                    WORKSITE_STATE = LCA_CASE_WORKLOC1_STATE)
+  }
+  
+  
+  # Adding Year column to dataframe
+  print("Mutating year ..")
+  new_df = new_df %>% 
+    mutate(YEAR = as.character(year))
+  
+  print(paste0("Mutated data size: ", as.character(dim(new_df))))  
+  
+  # Selecting only the relevant columns
+  new_df = new_df %>% 
+             select(CASE_NUMBER, 
+                    CASE_STATUS,
+                    EMPLOYER_NAME,
+                    SOC_NAME,
+                    JOB_TITLE,
+                    FULL_TIME_POSITION,
+                    PREVAILING_WAGE,
+                    PW_UNIT_OF_PAY,
+                    WORKSITE_CITY,
+                    WORKSITE_STATE,
+                    YEAR)
+  
+  # Merging data with already transformed data
+  print("Merging data ..")
+  h1b_df = rbind(h1b_df, new_df)
+  
+  print(paste0("Merged data size: ",as.character(dim(h1b_df))))
+}
+```
+
+I save this dataframe before any transformations for backup.
+
+```{r}
+# Saving read data frame 
+saveRDS(h1b_df,"h1b_df_no_transform.rds")
+
+# h1b_df_tx will undergo all transformations
+h1b_df_tx <- h1b_df
+```
+
+
+```{r}
+colnames(h1b_df_tx)
+```
+
+Next, I perform the data transformations on the raw dataset.
+
+<h2> Data Wrangling </h2> 
+
+<h3> Wage Unit of Pay </h3>
+To compare wages of any two records in our data set, we first need to convert them to the same time scale of payment. In our records, the following values of payment rate exist:
+
+```{r}
+h1b_df_tx %>%
+  group_by(PW_UNIT_OF_PAY) %>%
+  summarise(count = n(), percentage = 100*count/(dim(h1b_df_tx)[1]))
+```
+
+While 92% of the records provide Wage at the Year scale, 7.73% provide the information at Hour scale. As only 0.02% of the records have missing information, I remove such records from further analysis. For the remaining records, I convert them to the Year scale.
+
+```{r}
+function(prevailing_wage, pw_unit_of_pay) {
+  return(ifelse(pw_unit_of_pay == "Year", 
+                prevailing_wage, 
+                ifelse(pw_unit_of_pay == "Hour", 
+                       2080*prevailing_wage, 
+                       ifelse(pw_unit_of_pay== "Week", 
+                              52*prevailing_wage, 
+                              ifelse(pw_unit_of_pay == "Month", 
+                                     12*prevailing_wage, 
+                                     26*prevailing_wage)))))
+}
+
+
+h1b_df_tx %>%
+  filter(!is.na(PW_UNIT_OF_PAY)) %>%
+  mutate(PREVAILING_WAGE = as.numeric(PREVAILING_WAGE)) %>%
+  mutate(PREVAILING_WAGE =  pw_unit_to_yearly(PREVAILING_WAGE, PW_UNIT_OF_PAY)) -> h1b_df_tx
+```
+
+<h3> Full-Time Position </h3>
+
+The wage received by an employee might depend on whether the position is a Full-Time position or a Part-Time Position. Let's look at this distribution in our dataset.
+
+```{r}
+h1b_df_tx %>%
+  group_by(FULL_TIME_POSITION) %>%
+  summarise(count = n(),percentage = 100*count/(dim(h1b_df_tx)[1]))
+```
+
+Interestingly, 21.6% of the records have missing values regarding the Full Time Position. For filling the missing values, I analyze the relationship of the Prevailing Wage with Full Time Position across the years.
+
+```{r}
+# Generic ggplot graphics configuration I will be using for all my plots
+get_theme <- function() {
+  return(theme(axis.title = element_text(size = rel(1.5)),
+          legend.position = "bottom",
+          legend.text = element_text(size = rel(1.5)),
+          legend.title = element_text(size=rel(1.5)),
+          axis.text = element_text(size=rel(1.5)))) 
+}
+
+# Avoid scientific notation in plot
+options(scipen = 999)
+
+g <- ggplot(data = h1b_df_tx, aes(x=YEAR, y = PREVAILING_WAGE))
+g <- g + geom_boxplot(aes(fill=FULL_TIME_POSITION)) + coord_cartesian(ylim=c(0,200000))
+g <- g + xlab("YEAR") + ylab("WAGE (USD)") + get_theme()
+
+g 
+```
+
