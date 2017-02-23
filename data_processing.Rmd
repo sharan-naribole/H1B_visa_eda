@@ -499,4 +499,20 @@ Final step is to merge the coli_data frame with our main data frame. I perform a
 h1b_df_tx <- left_join(h1b_df_tx,coli_data, by = "WORKSITE")
 ```
 
+<h2> Conclusion </h2>
+
 Now that I performed all the key data transformations, I save the final dataframe into an RDS file. This dataframe will be used for both data analysis as well as interactive Shiny web dashboard application.
+
+```{r}
+saveRDS(h1b_df_tx,"h1b_transformed.rds")
+```
+
+I also save a compact version of the dataframe with only the relevant columns.
+
+```{r}
+h1b_df_tx %>%
+  select(-PW_UNIT_OF_PAY, -SOC_NAME,-CASE_NUMBER,-WORKSITE_CITY) -> h1b_compact
+
+saveRDS(h1b_compact, "h1b_compact.rds")
+```
+
