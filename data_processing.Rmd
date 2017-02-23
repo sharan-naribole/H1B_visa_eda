@@ -144,7 +144,9 @@ function(prevailing_wage, pw_unit_of_pay) {
 h1b_df_tx %>%
   filter(!is.na(PW_UNIT_OF_PAY)) %>%
   mutate(PREVAILING_WAGE = as.numeric(PREVAILING_WAGE)) %>%
-  mutate(PREVAILING_WAGE =  pw_unit_to_yearly(PREVAILING_WAGE, PW_UNIT_OF_PAY)) -> h1b_df_tx
+  mutate(PREVAILING_WAGE =  pw_unit_to_yearly(PREVAILING_WAGE, PW_UNIT_OF_PAY)) %>%
+  select(- PW_UNI PW_UNIT_OF_PAY) -> h1b_df_tx
+  
 ```
 
 <h3> Full-Time Position </h3>
@@ -469,3 +471,32 @@ h1b_df_tx <- full_join(h1b_df_tx,site_geocodes,by="WORKSITE")
 head(h1b_df_tx)
 ```
 
+<h3> Cost of Living Index (COLI)</h3>
+
+We have now reached the final data collection and transformation on location based information in our dataset. The prevailing Wage for the same job position might vary significantly based on the cost of living index of a location. For this purpose, I scraped City names and corresponding Cost of Living plus rent index from Numbeo webpage [https://www.numbeo.com/cost-of-living/country_result.jsp?country=United+States]. This data will help us visualize how the Wage for a given position for e.g., Data Scientist varies with the Cost of Living index of a worksite.
+
+Unfortunately, the webpage that I scraped from provides data only for the most popular 119 cities. As these are the most popular sites, this data can still be utilized for drawing key insights.
+
+```{r}
+coli_data = read.csv("data/coli_data.csv", stringsAsFactors = FALSE)
+
+coli_data <- coli_data %>% 
+             select(WORKSITE_CITY = city, COLI = coli, WORKSITE_STATE_ABB = state)
+
+coli_data$WORKSITE_STATE_FULL = sapply(coli_data$WORKSITE_STATE_ABB, function(x,y) {return(toupper(y[[x]]))}, y = state_hash)
+
+coli_data$WORKSITE = mapply(site_merge,toupper(coli_data$WORKSITE_CITY),coli_data$WORKSITE_STATE_FULL)
+
+coli_data %>%
+  select(WORKSITE, COLI) -> coli_data
+
+head(coli_data)
+```
+
+Final step is to merge the coli_data frame with our main data frame. I perform a left join as we still want to retain the records in our main data frame whose Cost of Living index might not be present in the coli_data frame.
+
+```{r}
+h1b_df_tx <- left_join(h1b_df_tx,coli_data, by = "WORKSITE")
+```
+
+Now that I performed all the key data transformations, I save the final dataframe into an RDS file. This dataframe will be used for both data analysis as well as interactive Shiny web dashboard application.
