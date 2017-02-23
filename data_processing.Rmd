@@ -250,7 +250,7 @@ I have created a hash map between state abbreviations and state full names.
 h1b_df_tx$WORKSITE_STATE_FULL = sapply(h1b_df_tx$WORKSITE_STATE, function(x,y) {return(toupper(y[[x]]))}, y = state_hash)
 ```
 
-Next, I rename the WORKSITE_STATE TO WORKSITE_STATE_ABB and merge it with the WORKSITE_CITY to form a new feature WORKSITE. This merge is performed because the same WORKSITE_CITY value might be present for multiple worksite states. For e.g., Houston is present in both Texas and California. To differentiate such locations, the merge is required.
+Next, I rename the WORKSITE_STATE TO WORKSITE_STATE_ABB. Then, I merge WORKSITE_STATE_FULL with the WORKSITE_CITY to form a new feature WORKSITE. This merge is performed because the same WORKSITE_CITY value might be present for multiple worksite states. For e.g., Houston is present in both Texas and California. To differentiate such locations, the merge is required.
 
 ```{r}
 site_merge <- function(x,y) {
@@ -260,14 +260,14 @@ site_merge <- function(x,y) {
 h1b_df_tx %>%
   rename(WORKSITE_STATE_ABB = WORKSITE_STATE) -> h1b_df_tx
 
-h1b_df_tx$WORKSITE = mapply(site_merge,h1b_df_tx$WORKSITE_CITY,h1b_df_tx$WORKSITE_STATE_ABB)
+h1b_df_tx$WORKSITE = mapply(site_merge,h1b_df_tx$WORKSITE_CITY,h1b_df_tx$WORKSITE_STATE_FULL)
 
 ```
 
 <h3> Worksite Spell Checker </h3>
 
 ```{r}
-wrong_names = c("NEW YROK, NY", "SUUNYVALE, CA", "SAN FRANSISCO, CA")
+wrong_names = c("NEW YROK, NEW YORK", "SUUNYVALE, CALIFORNIA", "SAN FRANSISCO, CALIFORNIA")
 
 h1b_df_tx %>% 
   filter(WORKSITE %in% wrong_names) %>%
@@ -276,7 +276,19 @@ h1b_df_tx %>%
 ```
 
 We can observe that there exist Worksite values that have spelling errors. Next, I implement a probabilistic spell-correcter that corrects Worksite values
-with errors at a maximum of distance. This spell-correcter is inspired by the Python implementation described at http://norvig.com/spell-correct.html
+with errors at a maximum of distance. 
+
+Before the spell corrector implementation, I first create a hash map of Worksite values and the corresponding counts.
+
+```{r}
+h1b_df_tx %>% 
+  group_by(WORKSITE) %>%
+  summarise(count = n()) -> sites_count
+
+site_hash = hashmap(sites_count$WORKSITE, sites_count$count)
+```
+
+Next, the spell-correcter is implemented extending the Python implementation described at http://norvig.com/spell-correct.html
 
 ```{r}
 get_deletes <- function(split_left,split_right, i) {
@@ -292,7 +304,7 @@ get_replaces <- function(split_left,split_right, i,letters) {
   return(NULL)
 }
 
-function(split_left, split_right,i) {
+get_transposes <- function(split_left, split_right,i) {
   # Generate interchanging of the positions of adjacent letters
   if(!is.null(split_right[i]) & nchar(split_right[i]) > 1) {
     return(paste0(split_left[i],substr(split_right[i],2,2),substr(split_right[i],1,1),substr(split_right[i],3,nchar(split_right[i]))))
@@ -320,16 +332,26 @@ edits1site <- function(site) {
 
 edits2site <- function(site) { 
     # All edits that are two edits away from `word`
-    edits1_cities = edits1site(site)
-    return (unlist(sapply(edits1_cities, edits1site)))
+    edits1_sites = edits1site(site)
+    return (unlist(sapply(edits1_sites, edits1site)))
 }
 
-function(site, site_hash) {
+get_prob <- function(site, site_hash) {
   # probability of site in our dataset
   return(site_hash[[site]])
 }
 
-site_spell_checker <- function(site,...) {
+known <- function(sites,site_hash = site_hash) {
+  # The subset of candidate sites that appear in the dictionary of sites
+  return(sites[site_hash$has_keys(sites)])
+}
+
+find_candidates <- function(site,...) {
+  # Generate possible spelling corrections for word
+  return(c(known(site,...), known(edits1site(site),...), c(site)))
+}
+
+site_spell_correcter <- function(site,...) {
   # best possible correction to the site
   candidates = find_candidates(site,...)
   best_candi = candidates[which.max(sapply(candidates,get_prob, ...))]
@@ -340,16 +362,61 @@ site_spell_checker <- function(site,...) {
   return(best_candi)
 }
 
-find_candidates <- function(site,...) {
-  # Generate possible spelling corrections for word
-  return(c(known(site,...), known(edits1site(site),...), c(site)))
-}
-
-spell_correct <- function(site, site_spell_hash) {
-  if(site_spell_hash$has_key(site)) {
-    return(site_spell_hash[[site]])
+site_count <- function(site, site_hash) {
+  
+  if(site_hash$has_key(site)) {
+    return(site_hash[[site]])
   }
   return(site)
 }
+```
+
+Using the above implementation, I obtain the corrected form of Worksite names next.
+
+```{r}
+sites <- sites_count$WORKSITE
+sites_before <- c()
+sites_after <- c()
+count <- 0
+
+for(site in sites) {
+  # Count of current Worksite
+  curr_count <- site_count(site,site_hash)
+  #print(paste0(site, ", ",curr_count))
+  
+  if(curr_count < 100) { # Threshold
+    #print(paste0(site, ", ",curr_count))
+    corrected <- site_spell_correcter(site,site_hash)
+    
+    if(corrected != site) { # Correction occurred
+      count <- count + 1
+      sites_before[count] <- site
+      sites_after[count] <- corrected
+      corrected_count <- site_count(corrected,site_hash)
+      #print(paste0(site, " : ", curr_count,", ",corrected, " : ", corrected_count))
+    }
+  }  
+}
+
+sites_corrected_hash <- hashmap(sites_before,sites_after)
+```
+
+Now, I've obtained the corrected versions of the Worksite values. Let's merge the corrections to our data frame.
+
+```{r}
+worksite_correct <- function(x, hash) {
+  if(hash$has_key(x)) {
+    return(hash[[x]])
+  }
+  return(x)
+}
+
+h1b_df_tx$WORKSITE_CORRECTED <- sapply(h1b_df_tx$WORKSITE,worksite_correct,hash=sites_corrected_hash)
+```
+
+```{r}
+h1b_df_tx %>%
+  select(-WORKSITE) %>%
+  rename(WORKSITE = WORKSITE_CORRECTED) -> h1b_df_tx
 ```
 
