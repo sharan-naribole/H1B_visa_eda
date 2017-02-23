@@ -443,5 +443,29 @@ top_sites <- (sites_count$WORKSITE)[1:2500]
 
 site_geocodes <- cbind(geocode(top_sites),top_sites)
 ```
+Obtianing the geocodes took a significant time close to an hour. Let's save the geocodes so this action need not be
 
+```{r}
+site_geocodes %>%
+  rename(WORKSITE = top_sites) -> site_geocodes
+
+saveRDS(site_geocodes,"geocodes.RDS")
+```
+Let's look at how much percentage of the dataset records is captured by the worksites for which geocodes were obtained.
+
+```{r}
+N_sites_geocoded <- dim(site_geocodes)[1]
+
+share <- 100*sum((sites_count$count)[1:N_sites_geocoded])/(dim(h1b_df_tx)[1])
+
+print(paste0("Records captured by geocoded sites: ", share))
+```
+
+Geocodes have been found for 96.47% of the records in our dataset inspite of not finding the geocodes for every unique Worksite value. Let's merge the geocode info with our main dataframe.
+
+```{r}
+h1b_df_tx <- full_join(h1b_df_tx,site_geocodes,by="WORKSITE")
+
+head(h1b_df_tx)
+```
 
