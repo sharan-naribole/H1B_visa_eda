@@ -1,0 +1,48 @@
+---
+title: "H1-B Visa Petitions for Data Science Positions in 2015"
+author: "Sharan Naribole"
+output:
+  html_notebook:
+    theme: united
+    toc: yes
+    toc_depth: 2
+  html_document:
+    fig_caption: yes
+    fig_height: 8
+    fig_width: 10
+    theme: united
+    toc: yes
+    toc_depth: 2
+  pdf_document: default
+---
+
+# Author: Sharan Naribole
+# Filename: data_processing.Rmd
+# H-1B Visa Petitions exploratory data analysis on applications disclosure data in the period 2011-2016
+
+Contributed by Sharan Naribole. He is currently undertaking the part-time online bootcamp organized by NYC Data Science Academy (Dec 2016- April 2017). This blog is based on his bootcamp project - R Exploratory Data Analysis
+
+In this notebook, I will utilize the transformed data set in the notebook data_processing.Rmd to answer interesting questions on the H-1B visa dataset. The key questions I will be covering include:
+
+Section I. High-Applicant Employers:
+
+1) Which Employers send most number of H-1B visa applications? 
+
+2) What is the Percentage share out of the 85,000 visa cap for the Employers with most applications?
+
+3) Most common Job Titles and their Relative wages to Industry standard as well as absolute?
+
+Section II. Data Science related job position Analysis:
+
+1) Comparison of Number of applications and Wages for Data Scientist, Data Engineer and Machine Learning
+
+2) Job Level comparison for Starting positions, Senior/ Lead and Manager positions
+
+
+Section III. Location-based analysis for Data Scientist related jobs:
+
+1) How does the Wage for Data Science related positions vary by state? By worksite?
+
+2) Are the jobs concentrated in few specific regions?
+
+3) Correlation between Wage and Cost of Living index?
