@@ -17,7 +17,7 @@ class coliSpider(scrapy.Spider):
         for location in response.css('.discreet_link::text').extract():
             #Split city and state_code
             print(location)
-            city_curr, state_curr = location.split(',')
+            city_curr, state_curr = location.split(', ')
             city.append(city_curr)
             state.append(state_curr)
 
