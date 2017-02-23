@@ -2,14 +2,14 @@
 title: "H1-B Visa Petitions for Data Science Positions in 2015"
 author: "Sharan Naribole"
 output:
-  html_document:
+  html_notebook:
     theme: united
     toc: yes
     toc_depth: 2
-    fig_width: 10
+  html_document:
+    fig_caption: yes
     fig_height: 8
-    fig_caption: true
-  html_notebook:
+    fig_width: 10
     theme: united
     toc: yes
     toc_depth: 2
@@ -168,9 +168,188 @@ get_theme <- function() {
 options(scipen = 999)
 
 g <- ggplot(data = h1b_df_tx, aes(x=YEAR, y = PREVAILING_WAGE))
-g <- g + geom_boxplot(aes(fill=FULL_TIME_POSITION)) + coord_cartesian(ylim=c(0,200000))
+g <- g + geom_boxplot(aes(fill=FULL_TIME_POSITION)) + coord_cartesian(ylim=c(0,125000))
 g <- g + xlab("YEAR") + ylab("WAGE (USD)") + get_theme()
 
 g 
+```
+
+Observations:
+
+1. 100% of the records from 2016 have missing values.
+2. Expectedly, the median wage for Full time positions are higher than for part-time positions.
+
+```{r}
+h1b_df_tx %>%
+  group_by(FULL_TIME_POSITION) %>%
+  summarise('75%' = quantile(PREVAILING_WAGE,probs = 0.75,na.rm=TRUE))
+```
+
+Based on the 75% percentile value for Part-Time positions, I select 70000 as the Prevailing Wage cut-off for Full-Time positions with missing values. Accordingly, the missing values are filled.
+
+```{r}
+h1b_df_tx = h1b_df_tx %>% 
+           mutate(FULL_TIME_POSITION = ifelse(is.na(FULL_TIME_POSITION), ifelse(PREVAILING_WAGE > 70000,'Y','N'), FULL_TIME_POSITION))
+```
+
+<h2> Location Transformations </h2>
+
+In this subsection, I will be performing various location-based transformations. The key ones include:
+
+1. Separating the state from Worksite City
+
+2. Mutating a Full State Name for the Abbreviated State Names
+
+3. Combining Worksite City with Worksite State Abbr. 
+
+3. Spell Checking and Correcting Spelling Errors using Probabilsitic Model
+
+4. Finding Geocodes for the different Worksites in our dataset (Lat, Long)
+
+5. Merging Cost of Living Index data for top cities with our dataframe
+
+I begin by separating the state from City by extracting only the first part of the WORKSITE_CITY value before the comma separator.
+
+<h3> Worksite Mutation </h3>
+
+```{r}
+split_city <- function(city) {
+  return(strsplit(city,split=",")[[1]][1])
+}
+
+h1b_df_tx$WORKSITE_CITY <- sapply(h1b_df_tx$WORKSITE_CITY,split_city)
+```
+
+Next, we map the WORKSITE_STATE which is currently in abbreviated format to the full name of the state.
+
+```{r}
+#read 52 state codes into local variable [includes DC (Washington D.C. and PR (Puerto Rico)]
+state_abbs = c("AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
+                                         "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME",
+                                         "MI", "MN", "MO", "MS",  "MT", "NC", "ND", "NE", "NH", "NJ", "NM",
+                                         "NV", "NY", "OH", "OK", "OR", "PA", "PR", "RI", "SC", "SD", "TN",
+                                         "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY")
+
+state_full = c("alaska","alabama","arkansas","arizona","california","colorado",
+                                       "connecticut","district of columbia","delaware","florida","georgia",
+                                       "hawaii","iowa","idaho","illinois","indiana","kansas","kentucky",
+                                       "louisiana","massachusetts","maryland","maine","michigan","minnesota",
+                                       "missouri","mississippi","montana","north carolina","north dakota",
+                                       "nebraska","new hampshire","new jersey","new mexico","nevada",
+                                       "new york","ohio","oklahoma","oregon","pennsylvania","puerto rico",
+                                       "rhode island","south carolina","south dakota","tennessee","texas",
+                                       "utah","virginia","vermont","washington","wisconsin",
+                                       "west virginia","wyoming")
+ 
+state_hash = hashmap(state_abbs,state_full)
+```
+
+I have created a hash map between state abbreviations and state full names. 
+
+```{r}
+h1b_df_tx$WORKSITE_STATE_FULL = sapply(h1b_df_tx$WORKSITE_STATE, function(x,y) {return(toupper(y[[x]]))}, y = state_hash)
+```
+
+Next, I rename the WORKSITE_STATE TO WORKSITE_STATE_ABB and merge it with the WORKSITE_CITY to form a new feature WORKSITE. This merge is performed because the same WORKSITE_CITY value might be present for multiple worksite states. For e.g., Houston is present in both Texas and California. To differentiate such locations, the merge is required.
+
+```{r}
+site_merge <- function(x,y) {
+  return(paste0(x,", ",y))
+}
+
+h1b_df_tx %>%
+  rename(WORKSITE_STATE_ABB = WORKSITE_STATE) -> h1b_df_tx
+
+h1b_df_tx$WORKSITE = mapply(site_merge,h1b_df_tx$WORKSITE_CITY,h1b_df_tx$WORKSITE_STATE_ABB)
+
+```
+
+<h3> Worksite Spell Checker </h3>
+
+```{r}
+wrong_names = c("NEW YROK, NY", "SUUNYVALE, CA", "SAN FRANSISCO, CA")
+
+h1b_df_tx %>% 
+  filter(WORKSITE %in% wrong_names) %>%
+  group_by(WORKSITE) %>%
+  summarise(count = n())
+```
+
+We can observe that there exist Worksite values that have spelling errors. Next, I implement a probabilistic spell-correcter that corrects Worksite values
+with errors at a maximum of distance. This spell-correcter is inspired by the Python implementation described at http://norvig.com/spell-correct.html
+
+```{r}
+get_deletes <- function(split_left,split_right, i) {
+  # Generate deletion of one letter from word
+  return(paste0(split_left[i], substr(split_right[i],2,nchar(split_right[i]))))
+}
+
+get_replaces <- function(split_left,split_right, i,letters) {
+  # Generate replacement of a letter by a-z or space
+  if(!is.null(split_right[i]) &  nchar(split_right[i]) > 0) {
+      return(unlist(sapply(letters, function(left,right,c) {return(paste0(left, c, right))}, left = split_left[i], right = substr(split_right[i],2,nchar(split_right[i])))))
+  }
+  return(NULL)
+}
+
+function(split_left, split_right,i) {
+  # Generate interchanging of the positions of adjacent letters
+  if(!is.null(split_right[i]) & nchar(split_right[i]) > 1) {
+    return(paste0(split_left[i],substr(split_right[i],2,2),substr(split_right[i],1,1),substr(split_right[i],3,nchar(split_right[i]))))
+  }
+  return(NULL)
+}
+
+edits1site <- function(site) {
+  # All edits that are one edit away from site
+  letters = toupper(strsplit("abcdefghijklmnopqrstuvwxyz ",split='')[[1]])
+  site_len <- nchar(site)
+  #print(site_len)
+  if(site_len < 4) {
+    return(site)
+  }
+  split_left <- sapply(seq(0,site_len), substr,x = site,start = 1)
+  split_right <- sapply(seq(1,site_len+1), substr,x = site,stop = site_len) 
+  deletes <- sapply(seq(1,site_len+1),get_deletes, split_left = split_left, split_right = split_right)
+  transposes <- unlist(sapply(seq(1,site_len+1),get_transposes, split_left = split_left, split_right = split_right))
+  replaces <- unlist(sapply(seq(1,site_len+1),get_replaces, split_left = split_left, split_right = split_right, letters=letters))
+  inserts <- unlist(sapply(seq(1,site_len+1),get_inserts, split_left = split_left, split_right = split_right,letters = letters))
+  
+  return(unique(c(deletes,transposes,replaces,inserts)))
+}
+
+edits2site <- function(site) { 
+    # All edits that are two edits away from `word`
+    edits1_cities = edits1site(site)
+    return (unlist(sapply(edits1_cities, edits1site)))
+}
+
+function(site, site_hash) {
+  # probability of site in our dataset
+  return(site_hash[[site]])
+}
+
+site_spell_checker <- function(site,...) {
+  # best possible correction to the site
+  candidates = find_candidates(site,...)
+  best_candi = candidates[which.max(sapply(candidates,get_prob, ...))]
+  
+  #if(get_prob(best_candi,...) > get_prob(site,...) ) {
+  #  return(best_candi)
+  #}
+  return(best_candi)
+}
+
+find_candidates <- function(site,...) {
+  # Generate possible spelling corrections for word
+  return(c(known(site,...), known(edits1site(site),...), c(site)))
+}
+
+spell_correct <- function(site, site_spell_hash) {
+  if(site_spell_hash$has_key(site)) {
+    return(site_spell_hash[[site]])
+  }
+  return(site)
+}
 ```
 
