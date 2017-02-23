@@ -1,8 +1,3 @@
-# Author: Sharan Naribole
-# Filename: helpers.R
-# H-1B Visa Petitions Data Wrangling to enable exploratory data analysis
-# on H-1B Visa applications disclosure data in the period 2011-2016
-
 ---
 title: "H1-B Visa Petitions for Data Science Positions in 2015"
 author: "Sharan Naribole"
@@ -20,6 +15,11 @@ output:
     toc_depth: 2
   pdf_document: default
 ---
+
+# Author: Sharan Naribole
+# Filename: data_processing.Rmd
+# H-1B Visa Petitions Data Wrangling to enable exploratory data analysis
+# on H-1B Visa applications disclosure data in the period 2011-2016
 
 Contributed by Sharan Naribole. He is currently undertaking the part-time online bootcamp organized by NYC Data Science Academy (Dec 2016- April 2017). This blog is based on his bootcamp project - R Exploratory Data Analysis
 
@@ -288,7 +288,8 @@ Before the spell corrector implementation, I first create a hash map of Worksite
 ```{r}
 h1b_df_tx %>% 
   group_by(WORKSITE) %>%
-  summarise(count = n()) -> sites_count
+  summarise(count = n()) %>%
+  arrange(desc(count)) -> sites_count
 
 site_hash = hashmap(sites_count$WORKSITE, sites_count$count)
 ```
@@ -429,4 +430,18 @@ h1b_df_tx %>%
   select(-WORKSITE) %>%
   rename(WORKSITE = WORKSITE_CORRECTED) -> h1b_df_tx
 ```
+<h3> Geocoding </h3>
+
+In this subsection, I find out the latitude and longitudes of our worksites and merge it to our dataframe. This information will help in creating map plots for the metrics considered in the data analysis.
+
+ggmap package provides a convenient way of finding out the geocodes of our Worksite values. However, there is a 2500 request limit per day. Therefore, for this example, I will find out the geocode only for the top 2500 worksites based on number of H-1B applications observed in our dataset. Let's begin by finding out those worksites! We have already created "sites_count"" dataframe in the descending order of number of applications for each worksite.
+
+```{r,results="hide",warning=FALSE, error=FALSE, message=FALSE}
+library(ggmap)
+
+top_sites <- (sites_count$WORKSITE)[1:2500]
+
+site_geocodes <- cbind(geocode(top_sites),top_sites)
+```
+
 
