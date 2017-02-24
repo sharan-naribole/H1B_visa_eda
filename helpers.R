@@ -194,7 +194,7 @@ get_theme <- function() {
           legend.text = element_text(size = rel(1.5)),
           legend.title = element_text(size=rel(1.5)),
           axis.text.y = element_text(size=rel(1.5),face="bold"),
-          axis.text.x = element_text(size=rel(1.25),face="bold")) 
+          axis.text.x = element_text(size=rel(1.5),face="bold")) 
   )
 }
 

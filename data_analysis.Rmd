@@ -36,8 +36,6 @@ Section II. Data Science related job position Analysis:
 
 1) Comparison of Number of applications and Wages for Data Scientist, Data Engineer and Machine Learning
 
-2) Job Level comparison for Starting positions, Senior/ Lead and Manager positions
-
 
 Section III. Location-based analysis for Data Scientist related jobs:
 
@@ -129,7 +127,7 @@ h1b_df %>%
 ```{r}
 g <- ggplot(common_jobs[1:15,], aes(x=reorder(JOB_TITLE,COUNT),y=COUNT)) +
    geom_bar(stat = "identity", fill = "blue") + coord_flip() +
-   xlab("JOB TITLE") + ylab("TOTAL NO. OF APPLICATIONS") + get_theme()
+   xlab("JOB TITLE") + ylab("TOTAL NO. OF APPLICATIONS") + get_theme() + scale_color_discrete()
 
 g
 ```
@@ -177,11 +175,11 @@ g
 
 Observations:
 
-1) We can clearly see that the high-applicant employers with the most H-1B visas have significantly lower wages for Software job positions. 
+1. We can clearly see that the high-applicant employers with the most H-1B visas have significantly lower wages for Software job positions. 
 
-2) The median wage for the IT companies is lower than 70000 USD whereas for the top software companies the median wage is above 85000 USD. 
+2. The median wage for the IT companies is lower than 70000 USD whereas for the top software companies the median wage is above 85000 USD. 
 
-3) Facebook and Google have a median above 100000 USD.
+3. Facebook and Google have a median above 100000 USD.
 
 <h2> Data Scientist Job Analysis </h2>
 
@@ -222,4 +220,82 @@ Observations:
 2. Median wage for Data Engineer jobs is consisently increasing.
 
 3. Median wage for Data Scientist positions is negligibly decreasing since 2012 although this is the position that has seen the most groth in the last 6 years.
+
+<h2> Location based Analysis </h2>
+
+I continue with the analysis for Data Scientist related jobs focusing on comparing different locations at the granularities of State and Worksite city.
+
+```{r}
+ds_state_df <- job_filter(h1b_df,job_list) %>%
+               group_by(WORKSITE_STATE_ABB) %>%
+               summarise(WAGE = mean(PREVAILING_WAGE), N_JOBS = n()) %>%
+               arrange(desc(WAGE))
+```
+
+```{r}
+# Focusing on states with at least 50 Data Science related jobs in the last 6 years
+
+g <- ggplot(ds_state_df %>% filter(N_JOBS >= 50), aes(x=reorder(WORKSITE_STATE_ABB,N_JOBS), y = N_JOBS)) 
+g <- g + geom_bar(stat="identity", aes(fill= WORKSITE_STATE_ABB))
+g <- g  + scale_colour_discrete() + coord_flip() + guides(fill=FALSE) + xlab("H-1B VISA APPLICATIONS") + ylab("STATE")
+
+g
+```
+
+Observations:
+
+1. California leads the pack by a huge margin with over 2000 applications. 
+
+2. New York, Washington, Massachusetts and Texas form the remaining top 5 positions. 
+
+This result is expected  as these states are hub of technology innovation with California housing the Silicon Valley, NY housing the Finance and media corporations, Washington housing the technology giants including Microsoft and Amazon.
+
+3. Surprisingly, only 11 states passed the barrier of 50 H-1B applications related to Data Science in the last 6 years.
+
+```{r}
+g <- ggplot(ds_state_df %>% filter(N_JOBS >= 50 & WORKSITE_STATE_ABB != 'MA'), aes(x=reorder(WORKSITE_STATE_ABB,WAGE), y = WAGE)) 
+g <- g + geom_b(stat="identity", aes(fill= WORKSITE_STATE_ABB))
+g <- g  + scale_colour_discrete() + coord_flip() + guides(fill=FALSE) + xlab("WAGE (USD)") + ylab("STATE")
+
+g
+```
+
+Observations:
+
+1. California has not only got the most number of jobs but also the highest wages. This is mainly due to the high cost of living as I will analyze later.
+
+2. Significant variation in the mean wage across the states.
+
+3. I excluded Massacusetts as it had an weird mean Wage of 1500,000 USD per annum. 
+
+Next, I dive deeper into analyzing data science positions.at the granularity of Worksite city.
+
+```{r}
+USA = map_data(map = "usa")
+
+g <- map_gen(job_filter(h1b_df,job_list),"TotalApps",USA,Ntop = 5)
+
+g
+```
+
+Observations:
+
+1. San Francisco leads the chart with the most number of jobs.
+
+2. Inside California, the jobs are not uniformly distributed. Instead, are mainly clustered nearby San Francisco.
+
+Next, I analyze how the wage changes with cost of living index of worksite city.
+
+```{r}
+g <- ggplot(job_filter(h1b_df,job_list) %>% filter(PREVAILING_WAGE < 200000), aes(x=COLI,y=PREVAILING_WAGE)) + geom_point()
+```
+
+```{r}
+g <- g + geom_jitter() + geom_smooth() + 
+  get_theme() + xlab("COST OF LIVING INDEX") + ylab("WAGE (USD)") +
+  ggtitle("DATA SCIENCE JOB ANALYSIS") + 
+  theme(plot.title = element_text(hjust = 0.5,size= rel(1.75)))
+
+g
+```
 
