@@ -207,7 +207,7 @@ In this subsection, I will be performing various location-based transformations.
 
 3. Combining Worksite City with Worksite State Abbr. 
 
-3. Spell Checking and Correcting Spelling Errors using Probabilsitic Model
+3. Spell Checking and Correcting Spelling Errors using Probabilistic Model
 
 4. Finding Geocodes for the different Worksites in our dataset (Lat, Long)
 
@@ -443,7 +443,7 @@ top_sites <- (sites_count$WORKSITE)[1:2500]
 
 site_geocodes <- cbind(geocode(top_sites),top_sites)
 ```
-Obtianing the geocodes took a significant time close to an hour. Let's save the geocodes so this action need not be
+Obtaining the geocodes took a significant time close to an hour. Let's save the geocodes so this action need not be
 
 ```{r}
 site_geocodes %>%
