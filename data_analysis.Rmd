@@ -299,3 +299,8 @@ g <- g + geom_jitter() + geom_smooth() +
 g
 ```
 
+Observations:
+
+1. A general increase in the Wage is observed with the cost of living although there are slight dips across the curve.
+
+2. The standard error decreases as we move towards locations with higher cost of living index.
