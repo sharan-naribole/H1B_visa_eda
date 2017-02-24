@@ -3,6 +3,8 @@
 # Spell CorrectionR implementation
 # Inspired by the probabilistic model described in http://norvig.com/spell-correct.html
 
+require(hashmap)
+
 get_deletes <- function(split_left,split_right, i) {
   # Generate deletion of one letter from word
   return(paste0(split_left[i], substr(split_right[i],2,nchar(split_right[i]))))

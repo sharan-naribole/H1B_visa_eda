@@ -29,8 +29,6 @@ In this notebook, I will focus on the cleaning and transformation of H-1B disclo
 library(dplyr)
 library(ggplot2)
 library(readxl)
-library(ggthemes)
-library(RColorBrewer)
 library(hashmap)
 ```
 
@@ -220,11 +218,11 @@ I begin by separating the state from City by extracting only the first part of t
 <h3> Worksite Mutation </h3>
 
 ```{r}
-split_city <- function(city) {
-  return(strsplit(city,split=",")[[1]][1])
+split_first <- function(word, split = " ") {
+  return(strsplit(word,split= split)[[1]][1])
 }
 
-h1b_df_tx$WORKSITE_CITY <- sapply(h1b_df_tx$WORKSITE_CITY,split_city)
+h1b_df_tx$WORKSITE_CITY <- sapply(h1b_df_tx$WORKSITE_CITY,split_first, split=",")
 ```
 
 Next, we map the WORKSITE_STATE which is currently in abbreviated format to the full name of the state.
@@ -475,7 +473,7 @@ head(h1b_df_tx)
 
 We have now reached the final data collection and transformation on location based information in our dataset. The prevailing Wage for the same job position might vary significantly based on the cost of living index of a location. For this purpose, I scraped City names and corresponding Cost of Living plus rent index from Numbeo webpage [https://www.numbeo.com/cost-of-living/country_result.jsp?country=United+States]. This data will help us visualize how the Wage for a given position for e.g., Data Scientist varies with the Cost of Living index of a worksite.
 
-Unfortunately, the webpage that I scraped from provides data only for the most popular 119 cities. As these are the most popular sites, this data can still be utilized for drawing key insights.
+I utilize Scrapy package in Python for the web-scraping. The codes can be found at https://github.com/sharan-naribole/H1B_visa_eda/tree/master/coli. Unfortunately, the webpage that I scraped from provides data only for the most popular 119 cities. As these are the most popular sites, this data can still be utilized for drawing key insights.
 
 ```{r}
 coli_data = read.csv("data/coli_data.csv", stringsAsFactors = FALSE)
@@ -515,4 +513,4 @@ h1b_df_tx %>%
 
 saveRDS(h1b_compact, "h1b_compact.rds")
 ```
-
+For some of the functions created in this notebook, I have added them to a separate helpers.R file for efficient reuse.
