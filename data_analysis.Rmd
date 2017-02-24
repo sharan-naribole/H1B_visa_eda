@@ -2,14 +2,14 @@
 title: "H1-B Visa Petitions for Data Science Positions in 2015"
 author: "Sharan Naribole"
 output:
+  html_notebook:
+    theme: united
+    toc: yes
+    toc_depth: 2
   html_document:
     fig_caption: yes
     fig_height: 8
     fig_width: 10
-    theme: united
-    toc: yes
-    toc_depth: 2
-  html_notebook:
     theme: united
     toc: yes
     toc_depth: 2
@@ -72,21 +72,17 @@ colnames(h1b_df)
 
 In this sub-section, I analyze employers with high number of applications. Let's begin by finding out the top 10 employers with the most number of applications in the period 2011-2016.
 
+It might occur that Employer Names takes most of the space leaving almost little for the actual plot. For this purpose, I cut short Employer names to only the first word in their title. An another approach might be reducing the axis.text size for ggplot2.
+
+```{r}
+h1b_df$EMPLOYER_COMPACT = sapply(h1b_df$EMPLOYER_NAME,split_first,split = " ")
+```
 ```{r}
 input <- plot_input(h1b_df, "EMPLOYER_NAME", "YEAR", "TotalApps",filter = TRUE, Ntop = 10)
 
-plot_output(input, 'EMPLOYER_NAME','YEAR','TotalApps', 'EMPLOYER','TOTAL NO. of APPLICATIONS')
-```
-
-We observe here that the Employer Names takes most of the space leaving almost little for the actual plot. For this purpose, I cut short Employer names to only the first word in their title.
-
-```{r}
-h1b_df$EMPLOYER_COMPACT = sapply(h1b_df$EMPLOYER_NAME,substr,start = 1, stop = 10)
-```
-```{r}
-input <- plot_input(h1b_df, "EMPLOYER_COMPACT", "YEAR", "TotalApps",filter = TRUE, Ntop = 10)
-
-plot_output(input, 'EMPLOYER_COMPACT','YEAR','TotalApps', 'EMPLOYER','TOTAL NO. of APPLICATIONS')
+g <- plot_output(input, 'EMPLOYER_NAME','YEAR','TotalApps', 'EMPLOYER','TOTAL NO. of APPLICATIONS') + theme(axis.title = element_text(size = rel(1.5)),
+          axis.text = element_text(size=rel(0.75),face="bold"))
+g
 ```
 
 Observations:
@@ -102,7 +98,9 @@ Observations:
 Next, let's look at the Percentage Share of the Approved/Certified H-1B applications for these top 10 employers out of the 85000 cap.
 
 ```{r}
-plot_output(input, 'EMPLOYER_COMPACT','YEAR','Share', 'EMPLOYER','% SHARE')
+g <- plot_output(input, 'EMPLOYER_NAME','YEAR','Share', 'EMPLOYER','% SHARE')
+
+g
 ```
 
 The assumption in this plot is that each certified H-1B application corresponds to a unique H-1B visa. Accordingly, if an employer's 8500 H-1B visa applications were certified then it's percetage share in the 85,000 visa cap is 10%. Based on this assumption, I make the following observations:
@@ -113,4 +111,115 @@ The assumption in this plot is that each certified H-1B application corresponds 
 
 3. It doesn't make sense to have University in this plot as majority of the H-1B visa applications from Universities might be for Post-doctoral researcher positions which are H-1B visa cap exempt.
 
+
+Next, I analyze the most common Full-Time job positions offered by the high-applicant employers. Also, I compare the wages offered by these employers to the global average for the same job positions.
+
+```{r}
+# Finding the top 5 employers
+top_employers <- unlist(find_top(h1b_df,"EMPLOYER_NAME","TotalApps",Ntop = 5))
+
+#Finding the most common Job Titles with Full-Time Positions
+h1b_df %>%
+  filter(EMPLOYER_NAME %in% top_employers & FULL_TIME_POSITION == 'Y') %>%
+  group_by(JOB_TITLE) %>%
+  summarise(COUNT = n()) %>%
+  arrange(desc(COUNT)) -> common_jobs
+```
+
+```{r}
+g <- ggplot(common_jobs[1:15,], aes(x=reorder(JOB_TITLE,COUNT),y=COUNT)) +
+   geom_bar(stat = "identity", fill = "blue") + coord_flip() +
+   xlab("JOB TITLE") + ylab("TOTAL NO. OF APPLICATIONS") + get_theme()
+
+g
+```
+
+
+Let's look at the Wage distributions for the 15 most common jobs among the high-applicant companies.
+
+```{r}
+h1b_df %>%
+  filter(EMPLOYER_NAME %in% top_employers, JOB_TITLE %in% unlist(common_jobs$JOB_TITLE[1:20])) %>%
+  group_by(JOB_TITLE) -> job_wages_df
+
+g <- ggplot(job_wages_df, aes(x=reorder(JOB_TITLE,PREVAILING_WAGE,median),y=PREVAILING_WAGE)) +
+   geom_boxplot(fill="green") + xlab("JOB TITLE") + ylab("WAGE (USD)") +
+  get_theme() + coord_flip(ylim=c(0,150000))
+
+g
+```
+
+Observations:
+
+1. Expectedly, the Manager level jobs and Lead Consultant job titles have the highest wages.
+
+2. The Software Engineering jobs including Programmer analyst, Computer Programmer, Computer Systems Engineer have wages close to 60000 USD per annum.
+
+3. Test Analyst and Systems Engineer have the lowest wages with the median slightly above 50000 USD.
+
+Based on this data, it will be interesting to find out how the wages offered to Software related job titles by the high-applicant employers compares with the top Software companies like Google, Amazon, Facebook etc.
+
+```{r}
+job_list <- c("Programmer","Computer","Software","Systems","Developer")
+
+employer_list <- toupper(c("IBM","Infosys","Wipro","Tata","Deloitte","Amazon","Google","Microsoft","Facebook"))
+
+job_filter(h1b_df,job_list) %>%
+  filter(EMPLOYER_COMPACT %in% employer_list) %>%
+  group_by(EMPLOYER_COMPACT) -> employer_df
+
+g <- ggplot(employer_df, aes(x=reorder(EMPLOYER_COMPACT,PREVAILING_WAGE,median),y= PREVAILING_WAGE)) +
+  geom_boxplot=(fill="green") + xlab("JOB TITLE") + ylab("WAGE (USD)") +
+  get_theme() + coord_flip(ylim=c(0,150000))
+
+g
+```
+
+Observations:
+
+1) We can clearly see that the high-applicant employers with the most H-1B visas have significantly lower wages for Software job positions. 
+
+2) The median wage for the IT companies is lower than 70000 USD whereas for the top software companies the median wage is above 85000 USD. 
+
+3) Facebook and Google have a median above 100000 USD.
+
+<h2> Data Scientist Job Analysis </h2>
+
+```{r}
+job_list <- c("Data Scientist","Data Engineer","Machine Learning")
+
+data_science_df <- plot_input(job_filter(h1b_df,job_list),
+                              "JOB_INPUT_CLASS",
+                              "YEAR",
+                              "TotalApps")
+
+h <- plot_output(data_science_df, "JOB_INPUT_CLASS","YEAR", "TotalApps", "JOB CLASS", "NO. OF APPLICATIONS")
+            
+h
+```
+
+Observations:
+
+1. Data Scientist and Data Engineer positions have observed an exponential growth in the last 6 years.
+
+2. Job Titles with Machine Learning explicitly in them are still few in number (< 75 in any year).
+
+3. In 2016, Data Scientist position broke the 1000 barrier on the number of H-1B Visa applications.
+
+```{r}
+
+g <- ggplot(job_filter(h1b_df,job_list), aes(x=JOB_INPUT_CLASS,y= PREVAILING_WAGE)) +
+  geom_boxplot(aes(fill=YEAR)) + xlab("JOB TITLE") + ylab("WAGE (USD)") +
+  get_theme() + coord_cartesian(ylim=c(25000,200000))
+
+g
+```
+
+Observations:
+
+1. Machine Learning jobs have the highest median wage although the number of Job Titles with Machine Learning explicitly in them are less than 75 in any year.
+
+2. Median wage for Data Engineer jobs is consisently increasing.
+
+3. Median wage for Data Scientist positions is negligibly decreasing since 2012 although this is the position that has seen the most groth in the last 6 years.
 
