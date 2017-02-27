@@ -24,7 +24,7 @@ Use `install.packages("package_name")` to install new packages in R.
 - [data_analysis.Rmd](https://github.com/sharan-naribole/H1B_visa_eda/blob/master/data_analysis.Rmd): R notebook with code for plots and corresponding 
 - [helpers.R](https://github.com/sharan-naribole/H1B_visa_eda/blob/master/helpers.R): helper functions used mainly for data analysis
 - [spell_correcter.R](https://github.com/sharan-naribole/H1B_visa_eda/blob/master/spell_correcter.R): A suite of functions for performing spell correction in a given vector using the frequencies of occurrence of different elements in the vector.
-- coli/: Python Scrapy code directory for scraping cost of living plus rent index. The spider crawl file can be found at coli/coli/spiders/coli.py
+- [coli/](https://github.com/sharan-naribole/H1B_visa_eda/tree/master/coli): Python Scrapy code directory for scraping cost of living plus rent index. The [spider crawl file](https://github.com/sharan-naribole/H1B_visa_eda/blob/master/coli/coli/spiders/coli.py) is the main file describing how the data should be scraped.
 
 ## Shiny app
 I extended this project to build a Shiny app based on the transformed data set. [Explore the app!](https://sharan-naribole.shinyapps.io/h_1b/)
