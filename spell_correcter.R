@@ -1,5 +1,5 @@
 # Author: Sharan Naribole
-# Filename: helpers.R
+# Filename: spell_correcter.R
 # Spell CorrectionR implementation
 # Inspired by the probabilistic model described in http://norvig.com/spell-correct.html
 
