@@ -27,16 +27,16 @@ Use `install.packages("package_name")` to install new packages in R.
 - coli/: Python Scrapy code directory for scraping cost of living plus rent index. The spider crawl file can be found at coli/coli/spiders/coli.py
 
 ## Shiny app
-I extended this project to build a Shiny app based on the transformed data set. Explore the app https://sharan-naribole.shinyapps.io/h_1b/
+I extended this project to build a Shiny app based on the transformed data set. [Explore the app!](https://sharan-naribole.shinyapps.io/h_1b/)
 
-GitHub repo: https://github.com/sharan-naribole/H1b_visa_shiny
+[GitHub repo](https://github.com/sharan-naribole/H1b_visa_shiny)
 
 ## Blogs
 
 Please read my blogs for key data insights and more details:
- - Data Analysis http://blog.nycdatascience.com/student-works/h-1b-visa-petitions-exploratory-data-analysis/
+ - [Data Analysis](http://blog.nycdatascience.com/student-works/h-1b-visa-petitions-exploratory-data-analysis/)
  
- - Shiny app http://blog.nycdatascience.com/student-works/h-1b-visa-applications-exploration-using-shiny/
+ - [Shiny app](http://blog.nycdatascience.com/student-works/h-1b-visa-applications-exploration-using-shiny/)
  
 ## Acknowledgements
 
