@@ -20,9 +20,10 @@ Use `install.packages("package_name")` to install new packages in R.
 
 ## Files
 
-- data_processing.Rmd: R notebook performing the key data transformations on the raw dataset.
-- data_analysis.Rmd: R notebook with code for plots and corresponding 
-- helpers.R: helper functions used mainly for data analysis
+- [data_processing.Rmd](https://github.com/sharan-naribole/H1B_visa_eda/blob/master/data_processing.Rmd): R notebook performing the key data transformations on the raw dataset.
+- [data_analysis.Rmd](https://github.com/sharan-naribole/H1B_visa_eda/blob/master/data_analysis.Rmd): R notebook with code for plots and corresponding 
+- [helpers.R](https://github.com/sharan-naribole/H1B_visa_eda/blob/master/helpers.R): helper functions used mainly for data analysis
+- [spell_correcter.R](https://github.com/sharan-naribole/H1B_visa_eda/blob/master/spell_correcter.R): A suite of functions for performing spell correction in a given vector using the frequencies of occurrence of different elements in the vector.
 - coli/: Python Scrapy code directory for scraping cost of living plus rent index. The spider crawl file can be found at coli/coli/spiders/coli.py
 
 ## Shiny app
@@ -30,9 +31,15 @@ I extended this project to build a Shiny app based on the transformed data set. 
 
 GitHub repo: https://github.com/sharan-naribole/H1b_visa_shiny
 
-## Blogs:
+## Blogs
 
 Please read my blogs for key data insights and more details:
  - Data Analysis http://blog.nycdatascience.com/student-works/h-1b-visa-petitions-exploratory-data-analysis/
  
  - Shiny app http://blog.nycdatascience.com/student-works/h-1b-visa-applications-exploration-using-shiny/
+ 
+## Acknowledgements
+
+- [OFLC Performance data](https://www.foreignlaborcert.doleta.gov/performancedata.cfm)
+
+- [How to Write a Spelling Corrector](http://norvig.com/spell-correct.html)
