@@ -16,13 +16,6 @@ output:
   pdf_document: default
 ---
 
-# Author: Sharan Naribole
-# Filename: data_processing.Rmd
-# H-1B Visa Petitions Data Wrangling to enable exploratory data analysis
-# on H-1B Visa applications disclosure data in the period 2011-2016
-
-Contributed by Sharan Naribole. He is currently undertaking the part-time online bootcamp organized by NYC Data Science Academy (Dec 2016- April 2017). This blog is based on his bootcamp project - R Exploratory Data Analysis
-
 In this notebook, I will focus on the cleaning and transformation of H-1B disclosure data for the period 2011-2016. Let's begin by loading the relevant libraries.
 
 ```{r,results="hide",warning=FALSE, error=FALSE, message=FALSE}
