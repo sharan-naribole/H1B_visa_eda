@@ -46,7 +46,7 @@ I have released the transformed dataset on Kaggle for public use under [CC BY-NC
 
 - [Kaggle Dataset page](https://www.kaggle.com/nsharan/h-1b-visa)
 
-- Exploration Round One kernel(https://www.kaggle.com/nsharan/d/nsharan/h-1b-visa/exploration-round-one)
+- [Exploration Round One kernel](https://www.kaggle.com/nsharan/d/nsharan/h-1b-visa/exploration-round-one)
  
 ## Acknowledgements
 
