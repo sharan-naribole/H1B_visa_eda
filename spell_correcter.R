@@ -1,6 +1,6 @@
 # Author: Sharan Naribole
-# Filename: helpers.R
-# Spell CorrectionR implementation
+# Filename: spell_correcter.R
+# Spell Correction R implementation
 # Inspired by the probabilistic model described in http://norvig.com/spell-correct.html
 
 require(hashmap)
