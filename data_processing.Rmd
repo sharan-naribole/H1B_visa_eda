@@ -50,6 +50,7 @@ for(year in seq(2016,2011)) {
                     CASE_STATUS = STATUS,
                     EMPLOYER_NAME = LCA_CASE_EMPLOYER_NAME,
                     SOC_NAME = LCA_CASE_SOC_NAME,
+                    SOC_CODE = LCA_CASE_SOC_CODE,
                     JOB_TITLE = LCA_CASE_JOB_TITLE,
                     FULL_TIME_POSITION = FULL_TIME_POS,
                     PREVAILING_WAGE = PW_1,
@@ -72,6 +73,7 @@ for(year in seq(2016,2011)) {
                     CASE_STATUS,
                     EMPLOYER_NAME,
                     SOC_NAME,
+                    SOC_CODE,
                     JOB_TITLE,
                     FULL_TIME_POSITION,
                     PREVAILING_WAGE,
@@ -119,7 +121,7 @@ h1b_df_tx %>%
 While 92% of the records provide Wage at the Year scale, 7.73% provide the information at Hour scale. As only 0.02% of the records have missing information, I remove such records from further analysis. For the remaining records, I convert them to the Year scale.
 
 ```{r}
-function(prevailing_wage, pw_unit_of_pay) {
+pw_unit_to_yearly <- function(prevailing_wage, pw_unit_of_pay) {
   return(ifelse(pw_unit_of_pay == "Year", 
                 prevailing_wage, 
                 ifelse(pw_unit_of_pay == "Hour", 
@@ -136,8 +138,7 @@ h1b_df_tx %>%
   filter(!is.na(PW_UNIT_OF_PAY)) %>%
   mutate(PREVAILING_WAGE = as.numeric(PREVAILING_WAGE)) %>%
   mutate(PREVAILING_WAGE =  pw_unit_to_yearly(PREVAILING_WAGE, PW_UNIT_OF_PAY)) %>%
-  select(- PW_UNI PW_UNIT_OF_PAY) -> h1b_df_tx
-  
+  select(- PW_UNIT_OF_PAY) -> h1b_df_tx
 ```
 
 <h3> Full-Time Position </h3>
