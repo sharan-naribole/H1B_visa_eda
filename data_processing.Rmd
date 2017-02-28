@@ -187,8 +187,10 @@ h1b_df_tx %>%
 Based on the 75% percentile value for Part-Time positions, I select 70000 as the Prevailing Wage cut-off for Full-Time positions with missing values. Accordingly, the missing values are filled.
 
 ```{r}
-h1b_df_tx = h1b_df_tx %>% 
-           mutate(FULL_TIME_POSITION = ifelse(is.na(FULL_TIME_POSITION), ifelse(PREVAILING_WAGE > 70000,'Y','N'), FULL_TIME_POSITION))
+h1b_df_tx %>% 
+  mutate(FULL_TIME_POSITION = ifelse(is.na(FULL_TIME_POSITION), 
+                                     ifelse(PREVAILING_WAGE > 70000,'Y','N'), 
+                                     FULL_TIME_POSITION)) -> h1b_df_tx
 ```
 
 <h2> Location Transformations </h2>
@@ -291,6 +293,11 @@ site_hash = hashmap(sites_count$WORKSITE, sites_count$count)
 Next, the spell-correcter is implemented extending the Python implementation described at http://norvig.com/spell-correct.html
 
 ```{r}
+get_inserts <- function(split_left,split_right, i, letters) {
+  # Generate insertions of a single letter
+  return(unlist(sapply(letters, function(left,right,c) {return(paste0(left, c, right))}, left = split_left[i], right = split_right[i])))
+}
+
 get_deletes <- function(split_left,split_right, i) {
   # Generate deletion of one letter from word
   return(paste0(split_left[i], substr(split_right[i],2,nchar(split_right[i]))))
@@ -430,7 +437,7 @@ In this subsection, I find out the latitude and longitudes of our worksites and 
 
 ggmap package provides a convenient way of finding out the geocodes of our Worksite values. However, there is a 2500 request limit per day. Therefore, for this example, I will find out the geocode only for the top 2500 worksites based on number of H-1B applications observed in our dataset. Let's begin by finding out those worksites! We have already created "sites_count"" dataframe in the descending order of number of applications for each worksite.
 
-```{r,results="hide",warning=FALSE, error=FALSE, message=FALSE}
+```{r}
 library(ggmap)
 
 top_sites <- (sites_count$WORKSITE)[1:2500]
