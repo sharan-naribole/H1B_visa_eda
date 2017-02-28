@@ -5,6 +5,11 @@
 
 require(hashmap)
 
+get_inserts <- function(split_left,split_right, i, letters) {
+  # Generate insertions of a single letter
+  return(unlist(sapply(letters, function(left,right,c) {return(paste0(left, c, right))}, left = split_left[i], right = split_right[i])))
+}
+
 get_deletes <- function(split_left,split_right, i) {
   # Generate deletion of one letter from word
   return(paste0(split_left[i], substr(split_right[i],2,nchar(split_right[i]))))
