@@ -45,9 +45,6 @@ Let's begin the analysis by loading the libraries and the dataframe!
 ```{r}
 library(dplyr)
 library(ggplot2)
-library(ggthemes)
-library(RColorBrewer)
-library(fiftystater)
 library(ggrepel)
 library(ggmap)
 source("helpers.R")
@@ -56,7 +53,7 @@ helpers.R includes a suite of plotting and filter functions that will help us wi
 
 
 ```{r}
-h1b_df <- readRDS("h1b_compact.rds")
+h1b_df <- readRDS("h1b_transformed.rds")
 
 colnames(h1b_df)
 ```

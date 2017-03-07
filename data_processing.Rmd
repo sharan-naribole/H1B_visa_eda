@@ -444,7 +444,7 @@ top_sites <- (sites_count$WORKSITE)[1:2500]
 
 site_geocodes <- cbind(geocode(top_sites),top_sites)
 ```
-Obtaining the geocodes took a significant time close to an hour. Let's save the geocodes so this action need not be
+Obtaining the geocodes took a significant time close to an hour. Let's save the geocodes so this action need not be performed again.
 
 ```{r}
 site_geocodes %>%
