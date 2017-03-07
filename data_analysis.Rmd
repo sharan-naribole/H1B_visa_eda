@@ -71,7 +71,7 @@ h1b_df$EMPLOYER_COMPACT = sapply(h1b_df$EMPLOYER_NAME,split_first,split = " ")
 input <- plot_input(h1b_df, "EMPLOYER_NAME", "YEAR", "TotalApps",filter = TRUE, Ntop = 10)
 
 g <- plot_output(input, 'EMPLOYER_NAME','YEAR','TotalApps', 'EMPLOYER','TOTAL NO. of APPLICATIONS') + theme(axis.title = element_text(size = rel(1.5)),
-          axis.text = element_text(size=rel(0.75),face="bold"))
+          axis.text.y = element_text(size=rel(0.85),face="bold"))
 g
 ```
 
@@ -116,7 +116,7 @@ h1b_df %>%
 ```{r}
 g <- ggplot(common_jobs[1:15,], aes(x=reorder(JOB_TITLE,COUNT),y=COUNT)) +
    geom_bar(stat = "identity", fill = "blue") + coord_flip() +
-   xlab("JOB TITLE") + ylab("TOTAL NO. OF APPLICATIONS") + get_theme() + scale_color_discrete()
+   xlab("JOB TITLE") + ylab("TOTAL NO. OF APPLICATIONS") + get_theme() + scale_color_discrete() 
 
 g
 ```
