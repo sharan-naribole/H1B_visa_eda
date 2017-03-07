@@ -40,6 +40,14 @@ Please read my blogs for key data insights and more details:
  
  - [Shiny app](http://blog.nycdatascience.com/student-works/h-1b-visa-applications-exploration-using-shiny/)
  
+## Kaggle
+
+I have released the transformed dataset on Kaggle for public use under [CC BY-NC-SA 4.0 License](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+- [Kaggle Dataset page](https://www.kaggle.com/nsharan/h-1b-visa)
+
+- [Exploration Round One kernel](https://www.kaggle.com/nsharan/d/nsharan/h-1b-visa/exploration-round-one)
+ 
 ## Acknowledgements
 
 - [OFLC Performance data](https://www.foreignlaborcert.doleta.gov/performancedata.cfm)
