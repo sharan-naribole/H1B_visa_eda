@@ -20,11 +20,11 @@ Use `install.packages("package_name")` to install new packages in R.
 
 ## Files
 
-- [data_processing.Rmd](https://github.com/sharan-naribole/H1B_visa_eda/blob/master/data_processing.Rmd): R notebook performing the key data transformations on the raw dataset.
-- [data_analysis.Rmd](https://github.com/sharan-naribole/H1B_visa_eda/blob/master/data_analysis.Rmd): R notebook with code for plots and corresponding 
-- [helpers.R](https://github.com/sharan-naribole/H1B_visa_eda/blob/master/helpers.R): helper functions used mainly for data analysis
-- [spell_correcter.R](https://github.com/sharan-naribole/H1B_visa_eda/blob/master/spell_correcter.R): A suite of functions for performing spell correction in a given vector using the frequencies of occurrence of different elements in the vector.
-- [coli/](https://github.com/sharan-naribole/H1B_visa_eda/tree/master/coli): Python Scrapy code directory for scraping cost of living plus rent index. The [spider crawl file](https://github.com/sharan-naribole/H1B_visa_eda/blob/master/coli/coli/spiders/coli.py) is the main file describing how the data should be scraped.
+- [data_processing.Rmd](data_processing.Rmd): R notebook performing the key data transformations on the raw dataset.
+- [data_analysis.Rmd](data_analysis.Rmd): R notebook with code for plots and corresponding 
+- [helpers.R](helpers.R): helper functions used mainly for data analysis
+- [spell_correcter.R](spell_correcter.R): A suite of functions for performing spell correction in a given vector using the frequencies of occurrence of different elements in the vector.
+- [coli/](coli): Python Scrapy code directory for scraping cost of living plus rent index. The [spider crawl file](coli/coli/spiders/coli.py) is the main file describing how the data should be scraped.
 
 ## Shiny app
 I extended this project to build a Shiny app based on the transformed data set. 
@@ -53,3 +53,7 @@ I have released the transformed dataset on Kaggle for public use under [CC BY-NC
 - [OFLC Performance data](https://www.foreignlaborcert.doleta.gov/performancedata.cfm)
 
 - [How to Write a Spelling Corrector](http://norvig.com/spell-correct.html)
+
+## License 
+
+Open sourced under the [MIT License](LICENSE.md). 
