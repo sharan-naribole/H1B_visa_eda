@@ -42,7 +42,7 @@ Please read my blogs for key data insights and more details:
  
 ## Kaggle
 
-I have released the transformed dataset on Kaggle for public use under [CC BY-NC-SA 4.0 License](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+I have released the transformed dataset on Kaggle for public use under [CC BY-NC-SA 4.0 License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
 - [Kaggle Dataset page](https://www.kaggle.com/nsharan/h-1b-visa)
 
