@@ -3,7 +3,9 @@ title: "H1-B Visa Petitions for Data Science Positions in 2015"
 author: "Sharan Naribole"
 output:
   md_document:
-  variant: markdown_github
+    variant: markdown_github
+    toc: true
+    fig_height: 4
 ---
 
 
