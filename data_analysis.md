@@ -97,22 +97,6 @@ Observations:
 
 3.  We observe a slight dip in the number of applications from Infosys, Wipro, Tata Consultancy, IBM India and HCL America. This is because of increased incorporation of automation in the IT industry. According to this article <https://qz.com/901292/indian-it-firms-like-wipro-tcs-and-infosys-have-been-preparing-for-changes-in-h1b-visa-laws-and-donald-trumps-america-for-several-years/>, the Indian IT firms have been preparing for nearly a decade through increased focus on automation, cloud computing and artificial intelligence.
 
-Next, let's look at the Percentage Share of the Approved/Certified H-1B applications for these top 10 employers out of the 85000 cap.
-
-``` r
-g <- plot_output(input, 'EMPLOYER_NAME','YEAR','Share', 'EMPLOYER','% SHARE')
-
-g
-```
-
-![](data_analysis_files/figure-markdown_github/unnamed-chunk-5-1.png)
-
-The assumption in this plot is that each certified H-1B application corresponds to a unique H-1B visa. Accordingly, if an employer's 8500 H-1B visa applications were certified then it's percentage share in the 85,000 visa cap is 10%. Based on this assumption, I make the following observations:
-
-1.  Over 90% of the certified H-1B visa applications belong to the IT companies with the most applications.
-
-2.  Infosys again takes a major share.
-
 Next, I analyze the most common Full-Time job positions offered by the high-applicant employers. Also, I compare the wages offered by these employers to the global average for the same job positions.
 
 ``` r
