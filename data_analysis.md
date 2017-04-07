@@ -26,15 +26,15 @@ Let's begin the analysis by loading the libraries and the dataframe!
 library(dplyr)
 ```
 
-    ## 
+    ##
     ## Attaching package: 'dplyr'
 
     ## The following objects are masked from 'package:stats':
-    ## 
+    ##
     ##     filter, lag
 
     ## The following objects are masked from 'package:base':
-    ## 
+    ##
     ##     intersect, setdiff, setequal, union
 
 ``` r
@@ -130,7 +130,7 @@ h1b_df %>%
 ``` r
 g <- ggplot(common_jobs[1:15,], aes(x=reorder(JOB_TITLE,COUNT),y=COUNT)) +
    geom_bar(stat = "identity", fill = "blue") + coord_flip() +
-   xlab("JOB TITLE") + ylab("TOTAL NO. OF APPLICATIONS") + get_theme() + scale_color_discrete() 
+   xlab("JOB TITLE") + ylab("TOTAL NO. OF APPLICATIONS") + get_theme() + scale_color_discrete()
 
 g
 ```
@@ -201,7 +201,7 @@ data_science_df <- plot_input(job_filter(h1b_df,job_list),
                               "TotalApps")
 
 h <- plot_output(data_science_df, "JOB_INPUT_CLASS","YEAR", "TotalApps", "JOB CLASS", "NO. OF APPLICATIONS")
-            
+
 h
 ```
 
@@ -248,7 +248,7 @@ ds_state_df <- job_filter(h1b_df,job_list) %>%
 ``` r
 # Focusing on states with at least 50 Data Science related jobs in the last 6 years
 
-g <- ggplot(ds_state_df %>% filter(N_JOBS >= 50), aes(x=reorder(WORKSITE_STATE_ABB,N_JOBS), y = N_JOBS)) 
+g <- ggplot(ds_state_df %>% filter(N_JOBS >= 50), aes(x=reorder(WORKSITE_STATE_ABB,N_JOBS), y = N_JOBS))
 g <- g + geom_bar(stat="identity", aes(fill= WORKSITE_STATE_ABB))
 g <- g  + scale_colour_discrete() + coord_flip() + guides(fill=FALSE) + ylab("H-1B VISA APPLICATIONS") + xlab("STATE")
 g <- g + get_theme()
@@ -268,7 +268,7 @@ This result is expected as these states are hub of technology innovation with Ca
 1.  Surprisingly, only 11 states passed the barrier of 50 H-1B applications related to Data Science in the last 6 years.
 
 ``` r
-g <- ggplot(ds_state_df %>% filter(N_JOBS >= 50 & WORKSITE_STATE_ABB != 'MA'), aes(x=reorder(WORKSITE_STATE_ABB,WAGE), y = WAGE)) 
+g <- ggplot(ds_state_df %>% filter(N_JOBS >= 50 & WORKSITE_STATE_ABB != 'MA'), aes(x=reorder(WORKSITE_STATE_ABB,WAGE), y = WAGE))
 g <- g + geom_bar(stat="identity", aes(fill= WORKSITE_STATE_ABB))
 g <- g  + scale_colour_discrete() + coord_flip() + guides(fill=FALSE) + ylab("WAGE (USD)") + xlab("STATE")
 g <- g + get_theme()
@@ -313,7 +313,7 @@ Next, I analyze how the wage changes with cost of living index of worksite city.
 
 ``` r
 g <- ggplot(job_filter(h1b_df,job_list) %>% filter(PREVAILING_WAGE < 200000), aes(x=COLI,y=PREVAILING_WAGE)) + geom_point()
-g <- g + geom_jitter() + geom_smooth() + 
+g <- g + geom_jitter() + geom_smooth() +
   get_theme() + xlab("COST OF LIVING INDEX") + ylab("WAGE (USD)") +
   get_theme()
 
